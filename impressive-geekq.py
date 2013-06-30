@@ -91,7 +91,7 @@ OSDStatusPos = TopLeft
 
 
 # import basic modules
-import random, getopt, os, types, re, codecs, tempfile, glob, re, io, md5
+import random, getopt, os, types, re, codecs, tempfile, glob, re, io, hashlib
 import traceback
 from math import *
 
@@ -1558,7 +1558,7 @@ def UpdateCacheMagic():
 	for f in flist:
 		pool.append(f)
 		pool.extend(list(GetFileProp(f, 'stat', [])))
-	CacheMagic = md5.new("\0".join(map(str, pool))).hexdigest()
+	CacheMagic = hashlib.new("\0".join(map(str, pool))).hexdigest()
 
 # set the persistent cache file position to the current end of the file
 def UpdatePCachePos():
