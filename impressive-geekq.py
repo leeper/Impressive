@@ -91,7 +91,7 @@ OSDStatusPos = TopLeft
 
 
 # import basic modules
-import random, getopt, os, types, re, codecs, tempfile, glob, re#, StringIO, md5
+import random, getopt, os, types, re, codecs, tempfile, glob, re, io, md5
 import traceback
 from math import *
 
@@ -3576,7 +3576,7 @@ def main():
 	Pcurrent = InitialPage
 
 	# prepare logo image
-	LogoImage = Image.open(StringIO.StringIO(LOGO))
+	LogoImage = Image.open(io.StringIO(LOGO))
 	LogoTexture = glGenTextures(1)
 	glBindTexture(GL_TEXTURE_2D, LogoTexture)
 	glTexImage2D(GL_TEXTURE_2D, 0, 1, 256, 64, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, LogoImage.tostring())
