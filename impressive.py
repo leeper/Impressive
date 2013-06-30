@@ -26,7 +26,7 @@ __author__  = "Martin J. Fiedler"
 __email__   = "martin.fiedler@gmx.net"
 __website__ = "http://impressive.sourceforge.net/"
 import sys
-def greet(): print >>sys.stderr, "Welcome to", __title__, "version", __version__
+def greet(): print("Welcome to", __title__, "version", __version__, file=sys.stderr)
 if __name__ == "__main__": greet()
 
 
@@ -103,7 +103,7 @@ Shuffle = False
 
 
 # import basic modules
-import random, getopt, os, types, re, codecs, tempfile, glob, StringIO, re
+import random, getopt, os, types, re, codecs, tempfile, glob, io, re
 import traceback, subprocess
 from math import *
 
@@ -133,7 +133,7 @@ if os.name == "nt":
     except ImportError:
         MPlayerPath = ""
         def GetScreenSize(): return pygame.display.list_modes()[0]
-        def RunURL(url): print "Error: cannot run URL `%s'" % url
+        def RunURL(url): print("Error: cannot run URL `%s'" % url)
     MPlayerPlatformOptions = [ "-colorkey", "0x000000" ]
     MPlayerColorKey = True
     pdftkPath = os.path.join(root, "pdftk.exe")
@@ -159,7 +159,7 @@ else:
         try:
             spawn(os.P_NOWAIT, "xdg-open", ["xdg-open", url])
         except OSError:
-            print >>sys.stderr, "Error: cannot open URL `%s'" % url
+            print("Error: cannot open URL `%s'" % url, file=sys.stderr)
     def GetScreenSize():
         res_re = re.compile(r'\s*(\d+)x(\d+)\s+\d+\.\d+\*')
         for path in os.getenv("PATH").split(':'):
@@ -184,17 +184,17 @@ try:
     from pygame.locals import *
     import Image, ImageDraw, ImageFont, ImageFilter
     import TiffImagePlugin, BmpImagePlugin, JpegImagePlugin, PngImagePlugin, PpmImagePlugin
-except (ValueError, ImportError), err:
-    print >>sys.stderr, "Oops! Cannot load necessary modules:", err
-    print >>sys.stderr, """To use Impressive, you need to install the following Python modules:
+except (ValueError, ImportError) as err:
+    print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
+    print("""To use Impressive, you need to install the following Python modules:
  - PyOpenGL [python-opengl]   http://pyopengl.sourceforge.net/
  - PyGame   [python-pygame]   http://www.pygame.org/
  - PIL      [python-imaging]  http://www.pythonware.com/products/pil/
  - PyWin32  (OPTIONAL, Win32) http://starship.python.net/crew/mhammond/win32/
 Additionally, please be sure to have pdftoppm or GhostScript installed if you
-intend to use PDF input."""
+intend to use PDF input.""", file=sys.stderr)
     sys.exit(1)
-
+    
 try:
     import thread
     EnableBackgroundRendering = True
@@ -511,14 +511,14 @@ def SafeCall(func, args=[], kwargs={}):
     try:
         return func(*args, **kwargs)
     except:
-        print >>sys.stderr, "----- Exception in user function ----"
+        print("----- Exception in user function ----", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
-        print >>sys.stderr, "----- End of traceback -----"
+        print("----- End of traceback -----", file=sys.stderr)
 
 def Quit(code=0):
     pygame.display.quit()
-    print >>sys.stderr, "Total presentation time: %s." % \
-                        FormatTime((pygame.time.get_ticks() - StartTime) / 1000)
+    print("Total presentation time: %s." % \
+                        FormatTime((pygame.time.get_ticks() - StartTime) / 1000), file=sys.stderr)
     sys.exit(code)
 
 
@@ -658,10 +658,10 @@ class Slide(Transition):
         raise AbstractError
     def render(self, t):
         cx, cy, nx, ny = self.origin(t)
-    	glBindTexture(TextureTarget, Tcurrent)
-    	DrawQuad(cx, cy, cx+1.0, cy+1.0)
-    	glBindTexture(TextureTarget, Tnext)
-    	DrawQuad(nx, ny, nx+1.0, ny+1.0)
+        glBindTexture(TextureTarget, Tcurrent)
+        DrawQuad(cx, cy, cx+1.0, cy+1.0)
+        glBindTexture(TextureTarget, Tnext)
+        DrawQuad(nx, ny, nx+1.0, ny+1.0)
 
 class SlideLeft(Slide):
     """Slide to the left"""
@@ -689,10 +689,10 @@ class Squeeze(Transition):
             t1, t2 = (Tnext, Tcurrent)
         else:
             t1, t2 = (Tcurrent, Tnext)
-    	glBindTexture(TextureTarget, t1)
-    	DrawQuad(0.0, 0.0, cx1, cy1)
-    	glBindTexture(TextureTarget, t2)
-    	DrawQuad(nx0, ny0, 1.0, 1.0)
+        glBindTexture(TextureTarget, t1)
+        DrawQuad(0.0, 0.0, cx1, cy1)
+        glBindTexture(TextureTarget, t2)
+        DrawQuad(nx0, ny0, 1.0, 1.0)
 class SqueezeHorizontal(Squeeze):
     def split(self, t): raise AbstractError
     def params(self, t):
@@ -926,7 +926,7 @@ def ForceUnicode(s, charset='iso8859-15'):
         return unicode(s, charset, 'ignore')
     if type(s) in (types.TupleType, types.ListType):
         return u''.join(map(unichr, s))
-    raise TypeError, "string argument not convertible to Unicode"
+    raise TypeError("string argument not convertible to Unicode")
 
 # search a system font path for a font file
 def SearchFont(root, name):
@@ -992,7 +992,7 @@ class GLFont:
                 self.font = LoadFont(search_path, check_name, size)
                 if self.font: break
         if not self.font:
-            raise IOError, "font file not found"
+            raise IOError("font file not found")
         self.img = Image.new('LA', (width, height))
         self.alpha = Image.new('L', (width, height))
         self.extend = ImageFilter.MaxFilter()
@@ -1049,7 +1049,7 @@ class GLFont:
             self.current_y += self.max_height
             self.max_height = 0
         if self.current_y + h > self.height:
-            raise ValueError, "bitmap too small for all the glyphs"
+            raise ValueError("bitmap too small for all the glyphs")
         box = self.GlyphBox()
         box.orig_x = self.current_x
         box.orig_y = self.current_y
@@ -1204,11 +1204,11 @@ class PDFParser:
         trailer = self.f.read()
         i = trailer.rfind("startxref")
         if i < 0:
-            raise PDFError, "cross-reference table offset missing"
+            raise PDFError("cross-reference table offset missing")
         try:
             offset = int(trailer[i:].split("\n")[1].strip())
         except (IndexError, ValueError):
-            raise PDFError, "malformed cross-reference table offset"
+            raise PDFError("malformed cross-reference table offset")
 
         # follow the trailer chain
         self.xref = {}
@@ -1229,7 +1229,7 @@ class PDFParser:
         try:
             self.scan_page_tree(root['Pages'].ref)
         except KeyError:
-            raise PDFError, "root page tree node missing"
+            raise PDFError("root page tree node missing")
         try:
             self.scan_names_tree(root['Names'].ref)
         except KeyError:
@@ -1299,14 +1299,14 @@ class PDFParser:
         if obj.__class__ == PDFref:
             obj = obj.ref
         if type(obj) != types.IntType:
-            raise PDFError, "object is not a valid reference"
+            raise PDFError("object is not a valid reference")
         offset = self.xref.get(obj, 0)
         if not offset:
-            raise PDFError, "referenced non-existing PDF object"
+            raise PDFError("referenced non-existing PDF object")
         self.f.seek(offset)
         header = self.getline().split(None, 3)
         if (len(header) < 3) or (header[2] != "obj") or (header[0] != str(obj)):
-            raise PDFError, "object does not start where it's supposed to"
+            raise PDFError("object does not start where it's supposed to")
         if len(header) == 4:
             data = [header[3]]
         else:
@@ -1322,7 +1322,7 @@ class PDFParser:
             except (KeyError, IndexError, ValueError):
                 t = None
             if t != force_type:
-                raise PDFError, "object does not match the intended type"
+                raise PDFError("object does not match the intended type")
         return data
 
     def parse_xref_section(self, start, count):
@@ -1341,7 +1341,7 @@ class PDFParser:
         rootref = 0
         offset = 0
         if self.getline() != "xref":
-            raise PDFError, "cross-reference table does not start where it's supposed to"
+            raise PDFError("cross-reference table does not start where it's supposed to")
             return (xref, rootref, offset)   # no xref table found, abort
         # parse xref sections
         while True:
@@ -1359,9 +1359,9 @@ class PDFParser:
         try:
             rootref = trailer['Root'].ref
         except KeyError:
-            raise PDFError, "root catalog entry missing"
+            raise PDFError("root catalog entry missing")
         except AttributeError:
-            raise PDFError, "root catalog entry is not a reference"
+            raise PDFError("root catalog entry is not a reference")
         return (xref, rootref, trailer.get('Prev', 0))
 
     def scan_page_tree(self, obj, mbox=None, cbox=None, rotate=0):
@@ -1523,10 +1523,10 @@ def ParsePDF(filename):
                  "output", FileNameEscape + TempFileName + ".pdf" + FileNameEscape,
                  "uncompress"])
     except OSError:
-        print >>sys.stderr, "Note: pdftk not found, hyperlinks disabled."
+        print("Note: pdftk not found, hyperlinks disabled.", file=sys.stderr)
         return
     except AssertionError:
-        print >>sys.stderr, "Note: pdftk failed, hyperlinks disabled."
+        print("Note: pdftk failed, hyperlinks disabled.", file=sys.stderr)
         return
 
     count = 0
@@ -1540,14 +1540,14 @@ def ParsePDF(filename):
                 count += len(annots)
                 FixHyperlinks(page)
             if pdf.errors:
-                print >>sys.stderr, "Note: there are errors in the PDF file, hyperlinks might not work properly"
+                print("Note: there are errors in the PDF file, hyperlinks might not work properly", file=sys.stderr)
             del pdf
             return count
         except IOError:
-            print >>sys.stderr, "Note: file produced by pdftk not readable, hyperlinks disabled."
-        except PDFError, e:
-            print >>sys.stderr, "Note: error in PDF file, hyperlinks disabled."
-            print >>sys.stderr, "      PDF parser error message:", e
+            print("Note: file produced by pdftk not readable, hyperlinks disabled.", file=sys.stderr)
+        except PDFError(e):
+            print("Note: error in PDF file, hyperlinks disabled.", file=sys.stderr)
+            print("      PDF parser error message:", e, file=sys.stderr)
     finally:
         try:
             os.remove(TempFileName + ".pdf")
@@ -1694,13 +1694,13 @@ def InitPCache():
     # check the cache magic
     UpdateCacheMagic()
     if CacheFile and (CacheFile.read(32) != CacheMagic):
-        print >>sys.stderr, "Cache file mismatch, recreating cache."
+        print("Cache file mismatch, recreating cache.", file=sys.stderr)
         CacheFile.close()
         CacheFile = None
 
     if CacheFile:
         # if the magic was valid, import cache data
-        print >>sys.stderr, "Using already existing persistent cache file."
+        print("Using already existing persistent cache file.", file=sys.stderr)
         for page in range(1, PageCount+1):
             offset = int(CacheFile.read(8), 16)
             if offset:
@@ -1711,8 +1711,8 @@ def InitPCache():
         try:
             CacheFile = file(CacheFileName, "wb+")
         except IOError:
-            print >>sys.stderr, "Error: cannot write the persistent cache file (`%s')" % CacheFileName
-            print >>sys.stderr, "Falling back to temporary file cache."
+            print("Error: cannot write the persistent cache file (`%s')" % CacheFileName, file=sys.stderr)
+            print("Falling back to temporary file cache.", file=sys.stderr)
             CacheMode = FileCache
         WritePCacheHeader()
 
@@ -1776,13 +1776,13 @@ def RenderPDF(page, MayAdjustResolution, ZoomMode):
                     imgfile = TempFileName + ("-%%0%dd.ppm" % digits) % RealPage
                     if os.path.exists(imgfile): break
                 SetFileProp(SourceFile, 'digits', digits)
-        except OSError, (errcode, errmsg):
-            print >>sys.stderr, "Warning: Cannot start pdftoppm -", errmsg
-            print >>sys.stderr, "Falling back to GhostScript (permanently)."
+        except OSError(errcode, errmsg):
+            print("Warning: Cannot start pdftoppm -", errmsg, file=sys.stderr)
+            print("Falling back to GhostScript (permanently).", file=sys.stderr)
             UseGhostScript = True
         except AssertionError:
-            print >>sys.stderr, "There was an error while rendering page %d" % page
-            print >>sys.stderr, "Falling back to GhostScript for this page."
+            print("There was an error while rendering page %d" % page, file=sys.stderr)
+            print("Falling back to GhostScript for this page.", file=sys.stderr)
             UseGhostScriptOnce = True
 
     # fallback to GhostScript
@@ -1799,11 +1799,11 @@ def RenderPDF(page, MayAdjustResolution, ZoomMode):
                 "-dTextAlphaBits=%d" % AlphaBits, \
                 "-dGraphicsAlphaBits=%s" % AlphaBits, \
                 FileNameEscape + SourceFile + FileNameEscape])
-        except OSError, (errcode, errmsg):
-            print >>sys.stderr, "Error: Cannot start GhostScript -", errmsg
+        except OSError(errcode, errmsg):
+            print("Error: Cannot start GhostScript -", errmsg, file=sys.stderr)
             return DummyPage()
         except AssertionError:
-            print >>sys.stderr, "There was an error while rendering page %d" % page
+            print("There was an error while rendering page %d" % page, file=sys.stderr)
             return DummyPage()
 
     # open the page image file with PIL
@@ -1813,7 +1813,7 @@ def RenderPDF(page, MayAdjustResolution, ZoomMode):
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        print >>sys.stderr, "Error: %s produced an unreadable file (page %d)" % (renderer, page)
+        print("Error: %s produced an unreadable file (page %d)" % (renderer, page), file=sys.stderr)
         return DummyPage()
 
     # try to delete the file again (this constantly fails on Win32 ...)
@@ -1879,7 +1879,7 @@ def LoadImage(page, ZoomMode):
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        print >>sys.stderr, "Image file `%s' is broken." % (FileList[page - 1])
+        print("Image file `%s' is broken." % (FileList[page - 1]), file=sys.stderr)
         return DummyPage()
 
     # apply rotation
@@ -1997,10 +1997,10 @@ def RenderPage(page, target):
         glTexImage2D(TextureTarget, 0, 3, TexWidth, TexHeight, 0,\
                      GL_RGB, GL_UNSIGNED_BYTE, PageImage(page))
     except GLerror:
-        print >>sys.stderr, "I'm sorry, but your graphics card is not capable of rendering presentations"
-        print >>sys.stderr, "in this resolution. Either the texture memory is exhausted, or there is no"
-        print >>sys.stderr, "support for large textures (%dx%d). Please try to run Impressive in a" % (TexWidth, TexHeight)
-        print >>sys.stderr, "smaller resolution using the -g command-line option."
+        print("I'm sorry, but your graphics card is not capable of rendering presentations", file=sys.stderr)
+        print("in this resolution. Either the texture memory is exhausted, or there is no", file=sys.stderr)
+        print("support for large textures (%dx%d). Please try to run Impressive in a" % (TexWidth, TexHeight), file=sys.stderr)
+        print("smaller resolution using the -g command-line option.", file=sys.stderr)
         sys.exit(1)
 
 # background rendering thread
@@ -2022,8 +2022,8 @@ def RenderThread(p1, p2):
                 PageImage(page)
     RTrunning = False
     if CacheMode >= FileCache:
-        print >>sys.stderr, "Background rendering finished, used %.1f MiB of disk space." %\
-              (CacheFilePos / 1048576.0)
+        print("Background rendering finished, used %.1f MiB of disk space." %\
+              (CacheFilePos / 1048576.0), file=sys.stderr)
 
 
 ##### RENDER MODE ##############################################################
@@ -2033,22 +2033,22 @@ def DoRender():
     TexWidth = ScreenWidth
     TexHeight = ScreenHeight
     if os.path.exists(RenderToDirectory):
-        print >>sys.stderr, "Destination directory `%s' already exists," % RenderToDirectory
-        print >>sys.stderr, "refusing to overwrite anything."
+        print("Destination directory `%s' already exists," % RenderToDirectory, file=sys.stderr)
+        print("refusing to overwrite anything.", file=sys.stderr)
         return 1
     try:
         os.mkdir(RenderToDirectory)
-    except OSError, e:
-        print >>sys.stderr, "Cannot create destination directory `%s':" % RenderToDirectory
-        print >>sys.stderr, e.strerror
+    except OSError(e):
+        print("Cannot create destination directory `%s':" % RenderToDirectory, file=sys.stderr)
+        print(e.strerror, file=sys.stderr)
         return 1
-    print >>sys.stderr, "Rendering presentation into `%s'" % RenderToDirectory
+    print("Rendering presentation into `%s'" % RenderToDirectory, file=sys.stderr)
     for page in xrange(1, PageCount + 1):
         PageImage(page, RenderMode=True).save("%s/page%04d.png" % (RenderToDirectory, page))
         sys.stdout.write("[%d] " % page)
         sys.stdout.flush()
-    print >>sys.stderr
-    print >>sys.stderr, "Done."
+    print(file=sys.stderr)
+    print("Done.", file=sys.stderr)
     return 0
 
 
@@ -2070,9 +2070,9 @@ def LoadInfoScript():
     except IOError:
         pass
     except:
-        print >>sys.stderr, "----- Exception in info script ----"
+        print("----- Exception in info script ----", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
-        print >>sys.stderr, "----- End of traceback -----"
+        print("----- End of traceback -----", file=sys.stderr)
 
 # we can't save lamba expressions, so we need to warn the user
 # in every possible way
@@ -2081,8 +2081,8 @@ LambdaWarning = False
 def here_was_a_lambda_expression_that_could_not_be_saved():
     global LambdaWarning
     if not LambdaWarning:
-        print >>sys.stderr, "WARNING: The info script for the current file contained lambda expressions that"
-        print >>sys.stderr, "         were removed during the a save operation."
+        print("WARNING: The info script for the current file contained lambda expressions that", file=sys.stderr)
+        print("         were removed during the a save operation.", file=sys.stderr)
         LambdaWarning = True
 
 # "clean" a PageProps entry so that only 'public' properties are left
@@ -2109,9 +2109,9 @@ def PropValueRepr(value):
         if value.__name__ != "<lambda>":
             return value.__name__
         if not ScriptTainted:
-            print >>sys.stderr, "WARNING: The info script contains lambda expressions, which cannot be saved"
-            print >>sys.stderr, "         back. The modifed script will be written into a separate file to"
-            print >>sys.stderr, "         minimize data loss."
+            print("WARNING: The info script contains lambda expressions, which cannot be saved", file=sys.stderr)
+            print("         back. The modifed script will be written into a separate file to", file=sys.stderr)
+            print("         minimize data loss.", file=sys.stderr)
             ScriptTainted = True
         return "here_was_a_lambda_expression_that_could_not_be_saved"
     elif type(value) == types.ClassType:
@@ -2160,7 +2160,7 @@ def CountDictChars(s, start=0):
             if c == "\\": context = "\\'"
             if c == "'": context = None
         if level < 0: return i
-    raise ValueError, "the dictionary never ends"
+    raise ValueError("the dictionary never ends")
 
 # modify and save a file's info script
 def SaveInfoScript(filename):
@@ -2194,7 +2194,7 @@ def SaveInfoScript(filename):
         f.write(script)
         f.close()
     except:
-        print >>sys.stderr, "Oops! Could not write info script!"
+        print("Oops! Could not write info script!", file=sys.stderr)
 
 
 ##### OPENGL RENDERING #########################################################
@@ -2471,7 +2471,7 @@ def PrepareCustomCursor(cimg):
     w, h = cimg.size
     tw, th = map(npot, cimg.size)
     if (tw > 256) or (th > 256):
-        print >>sys.stderr, "Custom cursor is rediculously large, reverting to normal one."
+        print("Custom cursor is rediculously large, reverting to normal one.", file=sys.stderr)
         return False
     img = Image.new('RGBA', (tw, th))
     img.paste(cimg, (0, 0))
@@ -2565,7 +2565,7 @@ def BoxFade(func):
 def ResetTimer():
     global StartTime, PageEnterTime
     if TimeTracking and not(FirstPage):
-        print "--- timer was reset here ---"
+        print("--- timer was reset here ---")
     StartTime = pygame.time.get_ticks()
     PageEnterTime = 0
 
@@ -2584,8 +2584,8 @@ def PlayVideo(video):
         try:
             opts += ["-wid", str(pygame.display.get_wm_info()['window'])]
         except KeyError:
-            print >>sys.stderr, "Sorry, but Impressive only supports video on your operating system if fullscreen"
-            print >>sys.stderr, "mode is used."
+            print("Sorry, but Impressive only supports video on your operating system if fullscreen", file=sys.stderr)
+            print("mode is used.", file=sys.stderr)
             VideoPlaying = False
             MPlayerProcess = None
             return
@@ -2647,9 +2647,9 @@ def PageLeft(overview=False):
             p = "over"
         else:
             p = "%4d" % Pcurrent
-        print "%s%9s%9s%9s" % (p, FormatTime(dt), \
+        print("%s%9s%9s%9s" % (p, FormatTime(dt), \
                                   FormatTime(PageEnterTime / 1000), \
-                                  FormatTime(t1 / 1000))
+                                  FormatTime(t1 / 1000)))
 
 # perform a transition to a specified page
 def TransitionTo(page):
@@ -2764,18 +2764,18 @@ def EnterZoomMode(targetx, targety):
     ZoomMode = True
     if TextureTarget != GL_TEXTURE_2D:
         if not ZoomWarningIssued:
-            print >>sys.stderr, "Sorry, but I can't increase the detail level in zoom mode any further when"
-            print >>sys.stderr, "GL_ARB_texture_rectangle is used. Please try running Impressive with the"
-            print >>sys.stderr, "'-e' parameter. If a modern nVidia or ATI graphics card is used, a driver"
-            print >>sys.stderr, "update may also fix the problem."
+            print("Sorry, but I can't increase the detail level in zoom mode any further when", file=sys.stderr)
+            print("GL_ARB_texture_rectangle is used. Please try running Impressive with the", file=sys.stderr)
+            print("'-e' parameter. If a modern nVidia or ATI graphics card is used, a driver", file=sys.stderr)
+            print("update may also fix the problem.", file=sys.stderr)
             ZoomWarningIssued = True
         return
     if not(HaveNPOT) and (npot(ZoomFactor) != ZoomFactor):
         if not ZoomWarningIssued:
-            print >>sys.stderr, "Sorry, but I can't increase the detail level in zoom mode any further when"
-            print >>sys.stderr, "conventional power-of-two textures are used and the zoom factor is not a"
-            print >>sys.stderr, "power of two. Please use another zoom factor or a current graphics card"
-            print >>sys.stderr, "with current drivers."
+            print("Sorry, but I can't increase the detail level in zoom mode any further when", file=sys.stderr)
+            print("conventional power-of-two textures are used and the zoom factor is not a", file=sys.stderr)
+            print("power of two. Please use another zoom factor or a current graphics card", file=sys.stderr)
+            print("with current drivers.", file=sys.stderr)
             ZoomWarningIssued = True
         return        
     if IsZoomed:
@@ -2786,12 +2786,12 @@ def EnterZoomMode(targetx, targety):
                      GL_RGB, GL_UNSIGNED_BYTE, PageImage(Pcurrent, True))
     except GLerror:
         if not ZoomWarningIssued:
-            print >>sys.stderr, "Sorry, but I can't increase the detail level in zoom mode any further, because"
-            print >>sys.stderr, "your OpenGL implementation does not support that. Either the texture memory is"
-            print >>sys.stderr, "exhausted, or there is no support for large textures (%dx%d). If you really" \
-                  % (ZoomFactor * TexWidth, ZoomFactor * TexHeight)
-            print >>sys.stderr, "need high-res zooming, please try to run Impressive in a smaller resolution"
-            print >>sys.stderr, "or use a lower zoom factor."
+            print("Sorry, but I can't increase the detail level in zoom mode any further, because", file=sys.stderr)
+            print("your OpenGL implementation does not support that. Either the texture memory is", file=sys.stderr)
+            print("exhausted, or there is no support for large textures (%dx%d). If you really" \
+                  % (ZoomFactor * TexWidth, ZoomFactor * TexHeight), file=sys.stderr)
+            print("need high-res zooming, please try to run Impressive in a smaller resolution", file=sys.stderr)
+            print("or use a lower zoom factor.", file=sys.stderr)
             ZoomWarningIssued = True
         return
     DrawCurrentPage()
@@ -3231,10 +3231,10 @@ def HandleEvent(event):
             TimeDisplay = not(TimeDisplay)
             DrawCurrentPage()
             if TimeDisplay and not(TimeTracking) and FirstPage:
-                print >>sys.stderr, "Time tracking mode enabled."
+                print("Time tracking mode enabled.", file=sys.stderr)
                 TimeTracking = True
-                print "page duration    enter    leave"
-                print "---- -------- -------- --------"
+                print("page duration    enter    leave")
+                print("---- -------- -------- --------")
         elif event.unicode == u'r':
             ResetTimer()
             if TimeDisplay: DrawCurrentPage()
@@ -3460,7 +3460,7 @@ def AddFile(name, title=None):
         images = [os.path.join(name, f) for f in os.listdir(name) if IsImageFileName(f)]
         images.sort(lambda a, b: cmp(a.lower(), b.lower()))
         if not images:
-            print >>sys.stderr, "Warning: no image files in directory `%s'" % name
+            print("Warning: no image files in directory `%s'" % name, file=sys.stderr)
         for img in images: AddFile(img)
 
     elif name.startswith('@') and os.path.isfile(name[1:]):
@@ -3480,7 +3480,7 @@ def AddFile(name, title=None):
                     AddFile(os.path.normpath(os.path.join(dirname, subfile)), title)
             f.close()
         except IOError:
-            print >>sys.stderr, "Error: cannot read list file `%s'" % name
+            print("Error: cannot read list file `%s'" % name, file=sys.stderr)
         if not FileName:
             FileName = name
         else:
@@ -3491,7 +3491,7 @@ def AddFile(name, title=None):
         if files:
             for f in files: AddFile(f)
         else:
-            print >>sys.stderr, "Error: input file `%s' not found" % name
+            print("Error: input file `%s' not found" % name, file=sys.stderr)
 
 
 ##### INITIALIZATION ###########################################################
@@ -3527,7 +3527,7 @@ def main():
         size = GetScreenSize()
         if size:
             ScreenWidth, ScreenHeight = size
-            print >>sys.stderr, "Detected screen size: %dx%d pixels" % (ScreenWidth, ScreenHeight)
+            print("Detected screen size: %dx%d pixels" % (ScreenWidth, ScreenHeight), file=sys.stderr)
     if DAR is None:
         PAR = 1
     else:
@@ -3576,7 +3576,7 @@ def main():
 
         # validity check
         if not pages:
-            print >>sys.stderr, "Warning: The input file `%s' could not be analyzed." % name
+            print("Warning: The input file `%s' could not be analyzed." % name, file=sys.stderr)
             continue
 
         # add pages and files into PageProps and FileProps
@@ -3596,7 +3596,7 @@ def main():
 
     # no pages? strange ...
     if not PageCount:
-        print >>sys.stderr, "The presentation doesn't have any pages, quitting."
+        print("The presentation doesn't have any pages, quitting.", file=sys.stderr)
         sys.exit(1)
 
     # if rendering is wanted, do it NOW
@@ -3615,7 +3615,7 @@ def main():
     try:
         pygame.display.set_mode((ScreenWidth, ScreenHeight), flags)
     except:
-        print >>sys.stderr, "FATAL: cannot create rendering surface in the desired resolution (%dx%d)" % (ScreenWidth, ScreenHeight)
+        print("FATAL: cannot create rendering surface in the desired resolution (%dx%d)" % (ScreenWidth, ScreenHeight), file=sys.stderr)
         sys.exit(1)
     pygame.display.set_caption(__title__)
     pygame.key.set_repeat(500, 30)
@@ -3623,23 +3623,23 @@ def main():
         pygame.mouse.set_visible(False)
         CursorVisible = False
     glOrtho(0.0, 1.0,  1.0, 0.0,  -10.0, 10.0)
-    if (Gamma <> 1.0) or (BlackLevel <> 0):
+    if (Gamma != 1.0) or (BlackLevel != 0):
         SetGamma(force=True)
 
     # check if graphics are unaccelerated
     renderer = glGetString(GL_RENDERER)
-    print >>sys.stderr, "OpenGL renderer:", renderer
+    print("OpenGL renderer:", renderer, file=sys.stderr)
     renderer = renderer.lower()
     if (renderer in ("mesa glx indirect", "gdi generic")) \
     or renderer.startswith("software"):
-        print >>sys.stderr, "WARNING: Using an OpenGL software renderer. Impressive will work, but it will"
-        print >>sys.stderr, "         very likely be too slow to be usable."
+        print("WARNING: Using an OpenGL software renderer. Impressive will work, but it will", file=sys.stderr)
+        print("         very likely be too slow to be usable.", file=sys.stderr)
 
     # setup the OpenGL texture mode
     Extensions = dict([(ext.split('_', 2)[-1], None) for ext in \
                  glGetString(GL_EXTENSIONS).split()])
     if AllowExtensions and ("texture_non_power_of_two" in Extensions):
-        print >>sys.stderr, "Using GL_ARB_texture_non_power_of_two."
+        print("Using GL_ARB_texture_non_power_of_two.", file=sys.stderr)
         HaveNPOT = True
         TextureTarget = GL_TEXTURE_2D
         TexWidth  = (ScreenWidth + 3) & (-4)
@@ -3647,7 +3647,7 @@ def main():
         TexMaxS = float(ScreenWidth) / TexWidth
         TexMaxT = float(ScreenHeight) / TexHeight
     elif AllowExtensions and ("texture_rectangle" in Extensions):
-        print >>sys.stderr, "Using GL_ARB_texture_rectangle."
+        print("Using GL_ARB_texture_rectangle.", file=sys.stderr)
         HaveNPOT = True
         TextureTarget = 0x84F5  # GL_TEXTURE_RECTANGLE_ARB
         TexWidth  = (ScreenWidth + 3) & (-4)
@@ -3655,7 +3655,7 @@ def main():
         TexMaxS = ScreenWidth
         TexMaxT = ScreenHeight
     else:
-        print >>sys.stderr, "Using conventional power-of-two textures with padding."
+        print("Using conventional power-of-two textures with padding.", file=sys.stderr)
         HaveNPOT = False
         TextureTarget = GL_TEXTURE_2D
         TexWidth  = npot(ScreenWidth)
@@ -3676,7 +3676,7 @@ def main():
     Pcurrent = InitialPage
 
     # prepare logo image
-    LogoImage = Image.open(StringIO.StringIO(LOGO))
+    LogoImage = Image.open(io.StringIO(LOGO))
     LogoTexture = glGenTextures(1)
     glBindTexture(GL_TEXTURE_2D, LogoTexture)
     glTexImage2D(GL_TEXTURE_2D, 0, 1, 256, 64, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, LogoImage.tostring())
@@ -3694,18 +3694,18 @@ def main():
         if titles:
             OSDFont.AddString("".join(titles))
     except ValueError:
-        print >>sys.stderr, "The OSD font size is too large, the OSD will be rendered incompletely."
+        print("The OSD font size is too large, the OSD will be rendered incompletely.", file=sys.stderr)
     except IOError:
-        print >>sys.stderr, "Could not open OSD font file, disabling OSD."
+        print("Could not open OSD font file, disabling OSD.", file=sys.stderr)
     except (NameError, AttributeError, TypeError):
-        print >>sys.stderr, "Your version of PIL is too old or incomplete, disabling OSD."
+        print("Your version of PIL is too old or incomplete, disabling OSD.", file=sys.stderr)
 
     # initialize mouse cursor
     if CursorImage:
         try:
             CursorImage = PrepareCustomCursor(Image.open(CursorImage))
         except:
-            print >>sys.stderr, "Could not open the mouse cursor image, using standard cursor."
+            print("Could not open the mouse cursor image, using standard cursor.", file=sys.stderr)
             CursorImage = False
 
     # set up page cache
@@ -3756,7 +3756,7 @@ def main():
 
     # set up background rendering
     if not EnableBackgroundRendering:
-        print >>sys.stderr, "Background rendering isn't available on this platform."
+        print("Background rendering isn't available on this platform.", file=sys.stderr)
         BackgroundRendering = False
 
     # if caching is enabled, pre-render all pages
@@ -3848,16 +3848,16 @@ def run_main():
         except KeyboardInterrupt:
             pass
         except:
-            print >>sys.stderr
-            print >>sys.stderr, 79 * "="
-            print >>sys.stderr, "OOPS! Impressive crashed!"
-            print >>sys.stderr, "This shouldn't happen. Please report this incident to the author, including the"
-            print >>sys.stderr, "full output of the program, particularly the following lines."
-            print >>sys.stderr
-            print >>sys.stderr, "Python version:", sys.version
-            print >>sys.stderr, "PyGame version:", pygame.__version__
-            print >>sys.stderr, "PIL version:", Image.VERSION
-            print >>sys.stderr, "PyOpenGL version:", OpenGL.__version__
+            print(file=sys.stderr)
+            print(79 * "=", file=sys.stderr)
+            print("OOPS! Impressive crashed!", file=sys.stderr)
+            print("This shouldn't happen. Please report this incident to the author, including the", file=sys.stderr)
+            print("full output of the program, particularly the following lines.", file=sys.stderr)
+            print(file=sys.stderr)
+            print("Python version:", sys.version, file=sys.stderr)
+            print("PyGame version:", pygame.__version__, file=sys.stderr)
+            print("PIL version:", Image.VERSION, file=sys.stderr)
+            print("PyOpenGL version:", OpenGL.__version__, file=sys.stderr)
             raise
     finally:
         StopMPlayer()
@@ -3899,9 +3899,9 @@ def if_op(cond, res_then, res_else):
     else:    return res_else
 
 def HelpExit(code=0):
-    print """A nice presentation tool.
+    print("""A nice presentation tool.
 
-Usage: """+os.path.basename(sys.argv[0])+""" [OPTION...] <INPUT(S)...>
+Usage: """,os.path.basename(sys.argv[0]),""" [OPTION...] <INPUT(S)...>
 
 You may either play a PDF file, a directory containing image files or
 individual image files.
@@ -3919,7 +3919,7 @@ Input options:
 
 Output options:
   -o,  --output <dir>     don't display the presentation, only render to .png
-  -f,  --fullscreen       """+if_op(Fullscreen,"do NOT ","")+"""start in fullscreen mode
+  -f,  --fullscreen       """,if_op(Fullscreen,"do NOT ",""),"""start in fullscreen mode
   -g,  --geometry <WxH>   set window size or fullscreen resolution
   -A,  --aspect <X:Y>     adjust for a specific display aspect ratio (e.g. 5:4)
   -G,  --gamma <G[:BL]>   specify startup gamma and black level
@@ -3968,11 +3968,11 @@ Advanced options:
   -V,  --overscan <px>    render PDF files <px> pixels larger than the screen
        --nologo           disable startup logo and version number display
 
-For detailed information, visit""", __website__
+For detailed information, visit""", __website__)
     sys.exit(code)
 
 def ListTransitions():
-    print "Available transitions:"
+    print("Available transitions:")
     standard = dict([(tc.__name__, None) for tc in AvailableTransitions])
     trans = [(tc.__name__, tc.__doc__) for tc in AllTransitions]
     trans.append(('None', "no transition"))
@@ -3983,8 +3983,8 @@ def ListTransitions():
             star = '*'
         else:
             star = ' '
-        print star, name.ljust(maxlen), '-', desc
-    print "(transitions with * are enabled by default)"
+        print(star, name.ljust(maxlen), '-', desc)
+    print("(transitions with * are enabled by default)")
     sys.exit(0)
 
 def TryTime(s, regexp, func):
@@ -3999,9 +3999,9 @@ def ParseTime(s):
         or TryTime(s, r'([0-9]+)[h:]([0-9]+)[m:]([0-9]+)s?$', lambda m: m[0] * 3600 + m[1] * 60 + m[2])
 
 def opterr(msg):
-    print >>sys.stderr, "command line parse error:", msg
-    print >>sys.stderr, "use `%s -h' to get help" % sys.argv[0]
-    print >>sys.stderr, "or visit", __website__, "for full documentation"
+    print("command line parse error:", msg, file=sys.stderr)
+    print("use `%s -h' to get help" % sys.argv[0], file=sys.stderr)
+    print("or visit", __website__, "for full documentation", file=sys.stderr)
     sys.exit(2)
 
 def SetTransitions(list):
@@ -4111,7 +4111,7 @@ def ParseOptions(argv):
             "duration=", "cursor=", "minutes", "layout=", "script=", "cache=",
             "cachefile=", "autooverview=", "zoomtime=", "fade", "nologo",
             "shuffle", "page-progress", "overscan"])
-    except getopt.GetoptError, message:
+    except getopt.GetoptError as message:
         opterr(message)
 
     for opt, arg in opts:
@@ -4136,10 +4136,10 @@ def ParseOptions(argv):
         if opt in ("-c", "--cache"):
             CacheMode = ParseCacheMode(arg)
         if opt == "--nocache":
-            print >>sys.stderr, "Note: The `--nocache' option is deprecated, use `--cache none' instead."
+            print("Note: The `--nocache' option is deprecated, use `--cache none' instead.", file=sys.stderr)
             CacheMode = NoCache
         if opt in ("-m", "--memcache"):
-            print >>sys.stderr, "Note: The `--memcache' option is deprecated, use `--cache memory' instead."
+            print("Note: The `--memcache' option is deprecated, use `--cache memory' instead.", file=sys.stderr)
             CacheMode = MemCache
         if opt == "--cachefile":
             CacheFileName = arg
@@ -4334,7 +4334,7 @@ def ParseOptions(argv):
 def run():
     try:
         run_main()
-    except SystemExit, e:
+    except SystemExit as e:
         return e.code
 
 if __name__=="__main__":
