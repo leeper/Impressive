@@ -179,21 +179,34 @@ else:
 
 # import special modules
 try:
-    from OpenGL.GL import *
     import pygame
+except (ValueError, ImportError) as err:
+    print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
+try:
     from pygame.locals import *
+except (ValueError, ImportError) as err:
+    print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
+try:
     import Image, ImageDraw, ImageFont, ImageFilter
+except (ValueError, ImportError) as err:
+    print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
+try:
     import TiffImagePlugin, BmpImagePlugin, JpegImagePlugin, PngImagePlugin, PpmImagePlugin
 except (ValueError, ImportError) as err:
     print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
-    print("""To use Impressive, you need to install the following Python modules:
+try:
+    from OpenGL.GL import *
+except (ValueError, ImportError) as err:
+    print("Oops! Cannot load necessary modules:", err, file=sys.stderr)
+
+print("""To use Impressive, you need to install the following Python modules:
  - PyOpenGL [python-opengl]   http://pyopengl.sourceforge.net/
  - PyGame   [python-pygame]   http://www.pygame.org/
  - PIL      [python-imaging]  http://www.pythonware.com/products/pil/
  - PyWin32  (OPTIONAL, Win32) http://starship.python.net/crew/mhammond/win32/
 Additionally, please be sure to have pdftoppm or GhostScript installed if you
 intend to use PDF input.""", file=sys.stderr)
-    sys.exit(1)
+#    sys.exit(1)
     
 try:
     import thread
